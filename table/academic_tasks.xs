@@ -7,22 +7,23 @@ table academic_tasks {
     timestamp created_at?=now {
       visibility = "private"
     }
-
-    text title filters=trim {
-      description = "Task title"
-    }
-    text? description? filters=trim {
-      description = "Task description"
-    }
-    date? due_date? {
-      description = "Due date"
-    }
-    text status?="pending" {
-      description = "Status"
-    }
+  
+    // Task title
+    text title filters=trim
+  
+    // Task description
+    text? description? filters=trim
+  
+    // Due date
+    date? due_date?
+  
+    // Status
+    text status?=pending
+  
     int subject_id? {
-      table = "subjects"
+      table = ""
     }
+  
     int user_id? {
       table = "user"
     }
@@ -33,5 +34,6 @@ table academic_tasks {
     {type: "btree", field: [{name: "created_at", op: "desc"}]}
     {type: "btree", field: [{name: "user_id", op: "asc"}]}
   ]
-}
 
+  guid = "BVwE7XOzSrb-7LUEx-FKPMY17o0"
+}
