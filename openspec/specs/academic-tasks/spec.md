@@ -1,7 +1,7 @@
 # academic-tasks Specification
 
 ## Purpose
-Defines the database schema and storage structure for managing student academic tasks linked to subjects in EduTrack AI, and provides RESTful CRUD endpoints for students to manage academic tasks with strict user data isolation.
+Defines the database schema and storage structure for managing student academic tasks linked to subjects in EduTrack AI, provides RESTful CRUD endpoints for students to manage academic tasks with strict user data isolation, and provides frontend screen synchronization with backend endpoints.
 
 ## Requirements
 
@@ -47,3 +47,22 @@ The system SHALL provide a DELETE `/academic_tasks/{id}` endpoint that deletes a
 #### Scenario: Student attempts to delete another user's task
 - **WHEN** an authenticated student sends a DELETE request to `/academic_tasks/{id}` for a task owned by another user
 - **THEN** the system SHALL reject the request with a not found error without deleting the record
+
+### Requirement: Academic tasks screen integration
+The system SHALL synchronize the tasks screen (`pages/2_Tarefas.py`) with Xano backend endpoints `GET /academic_tasks`, `POST /academic_tasks`, `PATCH /academic_tasks/{id}`, and `DELETE /academic_tasks/{id}` using the authenticated user session.
+
+#### Scenario: Display and filter user academic tasks
+- **WHEN** an authenticated student opens the tasks page
+- **THEN** the system SHALL fetch tasks from `GET /academic_tasks` with the user Bearer token and render them according to search and status filters
+
+#### Scenario: Create new academic task
+- **WHEN** an authenticated student submits a new task form
+- **THEN** the system SHALL send a POST request to `/academic_tasks` associating the task with the selected subject and user
+
+#### Scenario: Update academic task status
+- **WHEN** an authenticated student changes the completion status of a task
+- **THEN** the system SHALL send a PATCH request to `/academic_tasks/{id}` with the updated status
+
+#### Scenario: Delete academic task
+- **WHEN** an authenticated student confirms deletion of a task
+- **THEN** the system SHALL send a DELETE request to `/academic_tasks/{id}` and remove the task

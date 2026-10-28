@@ -1,7 +1,7 @@
 # subjects Specification
 
 ## Purpose
-Provides RESTful CRUD endpoints for students to manage academic subjects with strict user data isolation in EduTrack AI.
+Provides RESTful CRUD endpoints for students to manage academic subjects with strict user data isolation in EduTrack AI, and provides frontend screen synchronization with backend endpoints.
 
 ## Requirements
 
@@ -41,3 +41,13 @@ The system SHALL provide a DELETE `/subjects/{id}` endpoint that deletes an exis
 - **WHEN** an authenticated student sends a DELETE request to `/subjects/{id}` for a subject owned by another user
 - **THEN** the system SHALL reject the request with a not found error without deleting the record
 
+### Requirement: Subjects screen integration
+The system SHALL synchronize the subjects screen (`pages/1 _Disciplinas.py`) with Xano backend endpoints `GET /subjects` and `POST /subjects` using the authenticated user session.
+
+#### Scenario: Display user subjects
+- **WHEN** an authenticated student opens the subjects page
+- **THEN** the system SHALL fetch subjects from `GET /subjects` using the user's Bearer token and display them
+
+#### Scenario: Create new subject
+- **WHEN** an authenticated student submits a new subject form
+- **THEN** the system SHALL send a POST request to `/subjects` and refresh the subjects list
