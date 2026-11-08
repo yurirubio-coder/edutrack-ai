@@ -15,21 +15,16 @@ st.set_page_config(page_title="Perfil - EduTrack AI", page_icon="👤")
 
 def load_environment() -> str:
     """
-    Load environment variables from the root .env file and return the authentication base URL.
+    Load environment configuration from Streamlit secrets (with fallback to environment variables)
+    and return the authentication base URL.
     """
-    root_dir = Path(__file__).resolve().parent.parent
-    env_file = root_dir / ".env"
-
-    if env_file.is_file():
-        try:
-            with open(env_file, "r", encoding="utf-8") as f:
-                for line in f:
-                    stripped = line.strip()
-                    if stripped and not stripped.startswith("#") and "=" in stripped:
-                        key, val = stripped.split("=", 1)
-                        os.environ.setdefault(key.strip(), val.strip())
-        except Exception as e:
-            st.warning(f"Não foi possível ler o arquivo .env: {e}")
+    try:
+        if "XANO_AUTH_BASE_URL" in st.secrets:
+            base_url = str(st.secrets["XANO_AUTH_BASE_URL"]).strip()
+            os.environ.setdefault("XANO_AUTH_BASE_URL", base_url)
+            return base_url
+    except Exception:
+        pass
 
     return os.getenv("XANO_AUTH_BASE_URL", "https://x8ki-letl-twmt.n7.xano.io/api:Zet0FedP")
 
