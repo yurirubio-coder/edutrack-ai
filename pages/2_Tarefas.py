@@ -6,9 +6,15 @@ Synchronizes academic tasks interface with Xano CRUD endpoints.
 from datetime import date
 import os
 from pathlib import Path
+import tempfile
 from typing import Any, Dict, List, Optional
 import requests
 import streamlit as st
+
+from scripts.generate_performance_report import (
+    calculate_student_performance,
+    generate_performance_report_pdf,
+)
 
 st.set_page_config(page_title="Tarefas - EduTrack AI", page_icon="📝")
 
@@ -169,6 +175,21 @@ def delete_academic_task(base_url: str, token: str, task_id: int) -> None:
         raise RuntimeError(error_msg)
 
 
+def generate_pdf_report_bytes(subjects: List[Dict[str, Any]], tasks: List[Dict[str, Any]]) -> bytes:
+    """Generate PDF performance report and return binary bytes."""
+    perf = calculate_student_performance(subjects, tasks)
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
+        tmp_path = tmp_file.name
+    try:
+        generate_performance_report_pdf(perf, tmp_path)
+        with open(tmp_path, "rb") as f:
+            pdf_bytes = f.read()
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+    return pdf_bytes
+
+
 def format_due_date(raw_date: Any) -> str:
     """Format due date string or timestamp safely."""
     if not raw_date:
@@ -247,6 +268,21 @@ def main() -> None:
                 continue
 
             filtered_tasks.append(task)
+
+        # Quick report export
+        with st.expander("📄 Exportar Relatório de Desempenho (PDF)", expanded=False):
+            st.write("Baixe o relatório consolidado com suas disciplinas, tarefas e porcentagens de conclusão.")
+            try:
+                pdf_bytes = generate_pdf_report_bytes(subjects_list, tasks)
+                st.download_button(
+                    label="📥 Baixar Relatório de Desempenho (PDF)",
+                    data=pdf_bytes,
+                    file_name=f"edutrack_desempenho_{date.today().isoformat()}.pdf",
+                    mime="application/pdf",
+                    key="download_report_tasks",
+                )
+            except Exception as exc:
+                st.error(f"Erro ao gerar PDF: {exc}")
 
         if not filtered_tasks:
             if not tasks:
