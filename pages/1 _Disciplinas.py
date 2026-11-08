@@ -14,33 +14,35 @@ st.set_page_config(page_title="Disciplinas - EduTrack AI", page_icon="📚")
 
 def load_environment() -> str:
     """
-    Load environment configuration from the root .env file and return the college API base URL.
+    Load environment configuration from Streamlit secrets (with fallback to environment variables)
+    and return the college API base URL.
     """
-    root_dir = Path(__file__).resolve().parent.parent
-    env_file = root_dir / ".env"
+    try:
+        for key in ("EDUTRACK_API_BASE_URL", "XANO_COLLEGE_BASE_URL"):
+            if key in st.secrets:
+                os.environ.setdefault(key, str(st.secrets[key]).strip())
+    except Exception:
+        pass
 
-    if env_file.is_file():
-        try:
-            with open(env_file, "r", encoding="utf-8") as f:
-                for line in f:
-                    stripped = line.strip()
-                    if stripped and not stripped.startswith("#") and "=" in stripped:
-                        key, val = stripped.split("=", 1)
-                        os.environ.setdefault(key.strip(), val.strip())
-        except Exception:
-            pass
-
-    return os.getenv(
-        "EDUTRACK_API_BASE_URL",
-        os.getenv("XANO_COLLEGE_BASE_URL", "https://x8ki-letl-twmt.n7.xano.io/api:ILKDtEV0"),
+    return (
+        os.getenv("EDUTRACK_API_BASE_URL")
+        or os.getenv("XANO_COLLEGE_BASE_URL", "https://x8ki-letl-twmt.n7.xano.io/api:ILKDtEV0")
     )
 
 
 def get_auth_token() -> Optional[str]:
     """
-    Retrieve authentication token from session state or environment variable.
+    Retrieve authentication token from session state, Streamlit secrets, or environment variable.
     """
-    return st.session_state.get("auth_token") or os.getenv("EDUTRACK_AUTH_TOKEN")
+    token = st.session_state.get("auth_token")
+    if token:
+        return token
+    try:
+        if "EDUTRACK_AUTH_TOKEN" in st.secrets:
+            return str(st.secrets["EDUTRACK_AUTH_TOKEN"]).strip()
+    except Exception:
+        pass
+    return os.getenv("EDUTRACK_AUTH_TOKEN")
 
 
 def fetch_subjects(base_url: str, token: str) -> List[Dict[str, Any]]:
